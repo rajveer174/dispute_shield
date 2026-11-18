@@ -17,6 +17,7 @@ data files are committed; `data/` and `outputs/` are git-ignored.
 | [05](05_decision_policy/) | Which fight/accept policy? | Rules + 35% minimum gave up $9.9k; model p within $1.3k of the best | Model p + expected-gain threshold | Rule-table win-chance minimum |
 | [06](06_risk_tiers/) | How to set risk tiers? | High tier: 9% of payments, 58% of disputes, 6.6× average | 70th / 90th percentile cut-offs | Absolute 25% / 50% scale; note that "medium" is below average |
 | [07](07_decision_tree/) | Would a tree model do better? | Worse everywhere (e.g. payment win 0.504 vs 0.646) | – | Depth-5 decision tree |
+| [08](08_rule_checker/) | Can the rules tell a merchant "is this strong enough, what to add now"? | Held-out win rate Strong 70–75%, Fair 43–47%, Weak 31–36% at every moment | Rule checker on the Models page | Model drivers, test tables and combination tables on that page |
 
 ## Reproduce
 
