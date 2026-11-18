@@ -104,6 +104,13 @@ disputes. On affected jobs that stay, disputes scale by the risk model's ratio, 
 change in payment-win probability. The range comes from a team-level bootstrap, a causal discount
 k ∈ [0.5, 1] (missing evidence partly marks careless teams) and the uncertainty on the job-loss fraction.
 
+## Experiments
+
+[experiments/](experiments/) records every approach tried, including the rejected ones (model choice, leakage
+checks, rule search, dispute-rule variants, fight/accept back-test, risk tiers, decision tree). Each has a
+README with the decision, a `run.mjs` and a totals-only `RESULTS.md`. Reproduce with
+`train --experiments=outputs/experiments` (see `experiments/README.md`).
+
 ## Extending
 
 - **New dispute reason**: add it to `backend/src/main/resources/rules/dispute-reasons.json` (label, guidance)

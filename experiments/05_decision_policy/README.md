@@ -33,8 +33,9 @@ did not respond to are left out, since we cannot know what fighting them would h
 - **Recommendation:** set `fight-cost-usd` to the team's real cost per dispute and keep `min-expected-gain-usd`
   low (0–25). Raise the minimum only to cap the number of fights the team takes on.
 
-**Caveats:** 219 disputes and one 4-month window, so differences of a few thousand dollars are noisy. Accepting
-everything with a high win chance and fighting everything look similar here because 50% of responded disputes
-were won and amounts are large compared with a $15 cost. The $15 cost and $25 fee are assumptions.
+**Caveats:** 219 disputes and one 4-month window, so differences of a few thousand dollars are noisy. Fighting
+everything comes out almost as well as the best policy because half of responded disputes were won and amounts
+are large next to a $15 cost; the policies only separate once a fight costs much more. The $15 cost and $25 fee
+are assumptions.
 
 Rerun: `node experiments/05_decision_policy/run.mjs` (after the experiments training, see `../README.md`).
