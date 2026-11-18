@@ -19,6 +19,7 @@ import java.util.Map;
 /**
  * {@code java -jar dispute-shield.jar train --data=../data --out=../models/model_bundle.json.gz}
  * Writes the bundle plus a readable training_report.json (validation table, data findings, what-if).
+ * Add {@code --experiments=outputs/experiments} to also write held-out predictions for experiments/.
  */
 @Component
 @Profile("train")
@@ -38,6 +39,9 @@ public class TrainRunner implements ApplicationRunner {
     public void run(ApplicationArguments args) throws Exception {
         Path data = Path.of(args.containsOption("data") ? args.getOptionValues("data").get(0) : props.getTraining().getDataDir());
         Path out = Path.of(args.containsOption("out") ? args.getOptionValues("out").get(0) : props.getModelPath());
+        if (args.containsOption("experiments")) {
+            trainer.setExperimentsDir(Path.of(args.getOptionValues("experiments").get(0)));
+        }
         ModelBundle bundle = trainer.train(data);
         BundleIO.write(bundle, out);
         log.info("Wrote model bundle to {} ({} KB)", out.toAbsolutePath(), Files.size(out) / 1024);

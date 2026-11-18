@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
@@ -47,6 +48,19 @@ public class Trainer {
         this.policies = policies;
         this.whatIfEngine = whatIfEngine;
         this.historyStatsBuilder = historyStatsBuilder;
+    }
+
+    /**
+     * Experiments mode (train --experiments=DIR): also fits a decision tree as an extra compared approach and
+     * writes held-out predictions to DIR (row level, no IDs; DIR should be git-ignored). experiments/ scripts
+     * only publish totals from these files. Off by default, so normal training is unchanged.
+     */
+    private Path experimentsDir;
+    private final Map<String, LogisticModel> earlyLogistic = new HashMap<>();
+    private final Map<String, Integer> earlyCut = new HashMap<>();
+
+    public void setExperimentsDir(Path dir) {
+        this.experimentsDir = dir;
     }
 
     public ModelBundle train(Path dataDir) throws IOException {
@@ -140,6 +154,7 @@ public class Trainer {
         bundle.invoiceWin = compare(bundle, ModelBundle.INVOICE_WIN, invX, wy, wm, "cat:profession=", 10, "Profession");
         bundle.paymentWin = compare(bundle, ModelBundle.PAYMENT_WIN, payX, wy, wm, "cat:method=", 10, "Payment method");
         bundle.disputeWin = compare(bundle, ModelBundle.DISPUTE_WIN, dispX, wy, wm, "cat:reason=", 10, "Dispute reason");
+        if (experimentsDir != null) writeDisputeBacktest(winJobs, dispX, wy, wm);
         String winNote = String.format("Trained on %d resolved disputes (%s counted as %s). The dispute reason is not "
                         + "known before a dispute, so this averages over the historical mix of reasons.",
                 winJobs.size(), "withdrawn", cfg.isWithdrawnCountsAsWon() ? "won" : "lost");
@@ -216,7 +231,7 @@ public class Trainer {
 
     /** Fits three approaches on early months, scores the held-out late months, then refits logistic on all rows. */
     private LogisticModel compare(ModelBundle bundle, String key, List<Map<String, Double>> X, int[] y, int[] month,
-                                  String baselinePrefix, int minCount, String baselineLabel) {
+                                  String baselinePrefix, int minCount, String baselineLabel) throws IOException {
         ShieldProperties.Training cfg = props.getTraining();
         int maxMonth = Arrays.stream(month).max().orElse(0);
         int cut = maxMonth - cfg.getValidationMonths();
@@ -234,9 +249,19 @@ public class Trainer {
                     SegmentRateModel.fit(baselinePrefix, trX, ty, 20));
             candidates.put("naive_bayes", NaiveBayesModel.fit(trX, ty, minCount));
             candidates.put("logistic_l2", LogisticModel.fit(key, trX, ty, minCount, cfg.getL2(), cfg.getEpochs()));
+            if (experimentsDir != null) {
+                candidates.put("decision_tree", DecisionTreeModel.fit(trX, ty, 5, Math.max(30, trX.size() / 200)));
+                earlyLogistic.put(key, (LogisticModel) candidates.get("logistic_l2"));
+                earlyCut.put(key, cut);
+            }
+            Map<String, double[]> preds = new LinkedHashMap<>();
             for (Map.Entry<String, ProbModel> c : candidates.entrySet()) {
                 double[] p = predictAll(c.getValue()::predict, vaX);
+                preds.put(c.getKey(), p);
                 reports.add(Metrics.evaluate(c.getKey(), p, vy));
+            }
+            if (experimentsDir != null) {
+                writeHoldout(key, cut, vy, preds, predictAll(candidates.get("logistic_l2")::predict, trX));
             }
             log.info("[{}] train months <= {} ({} rows), validate months {}-{} ({} rows)",
                     key, cut, trX.size(), cut + 1, maxMonth, vaX.size());
@@ -250,6 +275,53 @@ public class Trainer {
         bundle.validation.put(key, reports);
         bundle.chosenApproach.put(key, "logistic_l2");
         return LogisticModel.fit(key, X, y, minCount, cfg.getL2(), cfg.getEpochs());
+    }
+
+    // ---------------------------------------------------------------- experiments output
+
+    /** month-free held-out file: label and each approach's probability; plus train-score quantiles for tiers. */
+    private void writeHoldout(String key, int cut, int[] vy, Map<String, double[]> preds, double[] trainLogistic) throws IOException {
+        Files.createDirectories(experimentsDir);
+        List<String> lines = new ArrayList<>();
+        lines.add("y," + String.join(",", preds.keySet().stream().map(k -> k.startsWith("baseline") ? "baseline" : k).toList()));
+        for (int i = 0; i < vy.length; i++) {
+            StringBuilder b = new StringBuilder().append(vy[i]);
+            for (double[] p : preds.values()) b.append(',').append(String.format(Locale.ROOT, "%.6f", p[i]));
+            lines.add(b.toString());
+        }
+        Files.write(experimentsDir.resolve("holdout_" + key + ".csv"), lines);
+        Map<String, Object> meta = new LinkedHashMap<>();
+        meta.put("key", key);
+        meta.put("train_months_up_to", cut);
+        meta.put("train_rows", trainLogistic.length);
+        meta.put("holdout_rows", vy.length);
+        meta.put("train_logistic_q70", Metrics.quantile(trainLogistic, 0.70));
+        meta.put("train_logistic_q90", Metrics.quantile(trainLogistic, 0.90));
+        BundleIO.MAPPER.writeValue(experimentsDir.resolve("holdout_" + key + ".json").toFile(), meta);
+    }
+
+    /**
+     * One row per resolved dispute (no IDs): whether it is in the held-out months, reason, amount, responded,
+     * outcome, the dispute-rule combination, and the early logistic model's win chance as submitted and with
+     * "responded" set. Used to back-test fight/accept policies.
+     */
+    private void writeDisputeBacktest(List<Job> winJobs, List<Map<String, Double>> dispX, int[] wy, int[] wm) throws IOException {
+        LogisticModel early = earlyLogistic.get(ModelBundle.DISPUTE_WIN);
+        Integer cut = earlyCut.get(ModelBundle.DISPUTE_WIN);
+        if (early == null || cut == null) return;
+        List<String> lines = new ArrayList<>();
+        lines.add("test,month,reason,amount_usd,responded,y,rule_key,p_model,p_model_if_responded");
+        for (int i = 0; i < winJobs.size(); i++) {
+            Job j = winJobs.get(i);
+            Dispute d = j.dispute();
+            Map<String, Double> resp = new HashMap<>(dispX.get(i));
+            resp.put("disp:responded", 1.0);
+            lines.add(String.format(Locale.ROOT, "%d,%d,%s,%.2f,%d,%d,%s,%.6f,%.6f",
+                    wm[i] > cut ? 1 : 0, wm[i], d.reason, d.amountUsd, d.merchantResponded ? 1 : 0, wy[i],
+                    WinRules.key(WinRules.evaluate(WinRules.DISPUTE, j.ctx(), d)),
+                    early.predict(dispX.get(i)), early.predict(resp)));
+        }
+        Files.write(experimentsDir.resolve("dispute_backtest.csv"), lines);
     }
 
     private static double[] predictAll(Function<Map<String, Double>, Double> f, List<Map<String, Double>> X) {
