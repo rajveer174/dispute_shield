@@ -1,0 +1,103 @@
+[
+  {
+    "id": "customer_address",
+    "label": "Customer address",
+    "feature": "inv:address",
+    "stage": "invoice",
+    "fixableAfterPayment": true,
+    "action": "Add the customer's service address to the invoice.",
+    "helpsReasons": ["fraud", "service_not_provided"]
+  },
+  {
+    "id": "customer_email",
+    "label": "Customer email",
+    "feature": "inv:email",
+    "stage": "invoice",
+    "fixableAfterPayment": true,
+    "action": "Capture the customer's email so receipts and correspondence can be shown.",
+    "helpsReasons": ["fraud", "credit_not_processed"]
+  },
+  {
+    "id": "customer_phone",
+    "label": "Customer phone",
+    "feature": "inv:phone",
+    "stage": "invoice",
+    "fixableAfterPayment": true,
+    "action": "Record the customer's phone number.",
+    "helpsReasons": ["fraud"]
+  },
+  {
+    "id": "signed_estimate",
+    "label": "Signed estimate",
+    "feature": "inv:signed_estimate",
+    "stage": "invoice",
+    "fixableAfterPayment": false,
+    "action": "Get the estimate signed before starting work.",
+    "helpsReasons": ["not_as_described", "service_not_provided"]
+  },
+  {
+    "id": "terms_accepted",
+    "label": "Terms accepted",
+    "feature": "inv:terms",
+    "stage": "invoice",
+    "fixableAfterPayment": false,
+    "action": "Have the customer accept your terms (refund / cancellation policy).",
+    "helpsReasons": ["credit_not_processed", "not_as_described"]
+  },
+  {
+    "id": "tech_gps_checkin",
+    "label": "Technician GPS check-in",
+    "feature": "inv:gps",
+    "stage": "invoice",
+    "fixableAfterPayment": false,
+    "action": "Have the technician check in on site with GPS.",
+    "helpsReasons": ["service_not_provided", "fraud"]
+  },
+  {
+    "id": "completion_signature",
+    "label": "Completion signature",
+    "feature": "inv:signature",
+    "stage": "invoice",
+    "fixableAfterPayment": false,
+    "action": "Collect the customer's signature when the job is done.",
+    "availabilityFeature": "inv:signature_unavailable",
+    "unavailableAction": "Start using completion signatures in the mobile app (available since December 2025; your team has not used it yet).",
+    "helpsReasons": ["service_not_provided", "not_as_described"]
+  },
+  {
+    "id": "before_photos",
+    "label": "Before photos",
+    "feature": "inv:has_before_photo",
+    "stage": "invoice",
+    "fixableAfterPayment": false,
+    "action": "Take before photos of the problem.",
+    "helpsReasons": ["not_as_described"]
+  },
+  {
+    "id": "after_photos",
+    "label": "After photos",
+    "feature": "inv:has_after_photo",
+    "stage": "invoice",
+    "fixableAfterPayment": true,
+    "action": "Upload after photos of the finished work.",
+    "helpsReasons": ["service_not_provided", "not_as_described"]
+  },
+  {
+    "id": "job_description",
+    "label": "Detailed job description",
+    "feature": "inv:detailed_description",
+    "stage": "invoice",
+    "fixableAfterPayment": true,
+    "action": "Write a job description of at least 80 characters (what was wrong, what was done).",
+    "helpsReasons": ["not_as_described"]
+  },
+  {
+    "id": "receipt_sent",
+    "label": "Receipt sent",
+    "feature": "pay:receipt",
+    "stage": "payment",
+    "fixableAfterPayment": true,
+    "action": "Send the customer a receipt now.",
+    "helpsReasons": ["fraud", "duplicate", "credit_not_processed"]
+  }
+]

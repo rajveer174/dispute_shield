@@ -1,0 +1,60 @@
+server:
+  port: ${PORT:8080}
+  compression:
+    enabled: true
+    mime-types: application/json,text/csv,text/html,text/css,application/javascript
+
+spring:
+  servlet:
+    multipart:
+      max-file-size: 100MB
+      max-request-size: 105MB
+  main:
+    banner-mode: off
+
+shield:
+  model-path: ${MODEL_PATH:models/model_bundle.json.gz}
+  economics:
+    dispute-fee-usd: 25
+    fight-cost-usd: 15
+    # Fight only when the expected gain over accepting, p x (amount + fee) - fight cost, is at least this.
+    # 0 = fight whenever it pays on average.
+    min-expected-gain-usd: 25
+    fee-recovered-on-win: true
+  training:
+    data-dir: ${DATA_DIR:data}
+    withdrawn-counts-as-won: true
+    # 0 = auto: drop payments collected within the p95 payment-to-dispute lag of the end of the data
+    # (disputes are recorded when the card network notifies us, so they arrive weeks later).
+    censor-days: 0
+    censor-quantile: 0.95
+    # NONE: the June 2026 invoice-status backfill touched updated_at, so it cannot detect evidence edited
+    # after a dispute. Late evidence is handled by rebuilding photo counts from photo timestamps instead.
+    leakage-mode: NONE
+    validation-months: 4
+    l2: 1.0
+    epochs: 400
+    high-tier-quantile: 0.90
+    medium-tier-quantile: 0.70
+    bootstrap-samples: 300
+    causal-discount-low: 0.5
+    causal-discount-high: 1.0
+    seed: 42
+  export:
+    min-auc-to-publish: 0.55
+  session:
+    max-sessions: 50
+    ttl-hours: 72
+
+  # Policy parameters (each policy is a Spring bean in com.testpay.shield.whatif.policies)
+  policies:
+    address-mandatory:
+      small-job-threshold-usd: 300
+      small-job-loss-fraction: 0.03
+    no-keyed-above:
+      threshold-usd: 1000
+      job-loss-fraction: 0.08
+    signed-estimate-above:
+      threshold-usd: 500
+    required-after-photo:
+      enabled: true

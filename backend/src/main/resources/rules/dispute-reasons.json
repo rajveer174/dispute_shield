@@ -1,0 +1,32 @@
+[
+  {
+    "id": "fraud",
+    "label": "Fraud / unauthorised",
+    "description": "Cardholder says they did not authorise the payment.",
+    "guidance": "Show the customer was real and present: address, phone, email, GPS check-in, completion signature, AVS/CVV match, receipt."
+  },
+  {
+    "id": "service_not_provided",
+    "label": "Service not provided",
+    "description": "Customer says the work was never done.",
+    "guidance": "Prove the job happened: GPS check-in, after photos, completion signature, job description."
+  },
+  {
+    "id": "not_as_described",
+    "label": "Not as described",
+    "description": "Customer says the work did not match what was agreed.",
+    "guidance": "Show what was agreed and delivered: signed estimate, line items, before/after photos, detailed description, accepted terms."
+  },
+  {
+    "id": "duplicate",
+    "label": "Duplicate charge",
+    "description": "Customer says they were charged twice.",
+    "guidance": "Show the charges are for different jobs or that one was refunded: invoices, receipts."
+  },
+  {
+    "id": "credit_not_processed",
+    "label": "Credit not processed",
+    "description": "Customer says a promised refund never arrived.",
+    "guidance": "Show the refund policy the customer accepted (terms) and any refund already issued."
+  }
+]
