@@ -254,3 +254,22 @@ button.file-remove:hover { background: var(--bad-soft); }
 .rule-mark { font-weight: 700; width: 14px; flex: none; }
 .rule-todo { margin-top: 6px; }
 .section-title { margin-top: 24px; }
+
+/* Invoice strength checker (Models page) */
+.checker-lookup { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 8px 0; }
+.checker-lookup input { min-width: 0; flex: 1 1 180px; max-width: 280px; }
+.checker-rules { list-style: none; padding: 0; margin: 10px 0 12px; display: grid; gap: 6px; }
+.checker-rules label { display: flex; gap: 8px; align-items: center; cursor: pointer; }
+.checker-summary { margin-top: 14px; padding: 12px 14px; border: 1px solid var(--border); border-left-width: 4px; border-radius: 8px; }
+.checker-summary.strong { border-left-color: var(--good); }
+.checker-summary.fair { border-left-color: var(--warn, #b7791f); }
+.checker-summary.weak { border-left-color: var(--bad); }
+.checker-summary p { margin: 6px 0; }
+.checker-adds { margin: 4px 0 6px; padding-left: 20px; }
+.checker-adds li { margin: 3px 0; }
+.badge.verdict-strong { background: var(--good-soft, #e6f4ea); color: var(--good); }
+.badge.verdict-fair { background: var(--warn-soft, #fdf3e1); color: var(--warn, #b7791f); }
+.badge.verdict-weak { background: var(--bad-soft); color: var(--bad); }
+
+/* Bars use background colours; keep them when the page is printed or saved as PDF. */
+.month-bar span, .calib-pred, .calib-obs, .strength-bar, .bar span { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
