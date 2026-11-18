@@ -43,7 +43,7 @@ public class ApiExceptionHandler {
 
     @ExceptionHandler(MaxUploadSizeExceededException.class)
     public ResponseEntity<Map<String, Object>> tooBig(MaxUploadSizeExceededException e) {
-        return body(HttpStatus.PAYLOAD_TOO_LARGE, "File too large.", List.of());
+        return body(HttpStatus.PAYLOAD_TOO_LARGE, "Upload too large: the limit is 30 MB in total.", List.of());
     }
 
     @ExceptionHandler(Exception.class)

@@ -5,7 +5,8 @@ import { useApp } from '../App.jsx';
 import { Card, ErrorBox, Stat } from '../components.jsx';
 import { usd } from '../format.js';
 
-const MAX_TOTAL_MB = 100;
+// Must match spring.servlet.multipart in application.yml.
+const MAX_TOTAL_MB = 30;
 
 function FileInput({ name, label, required, file, onChange, hint, disabled }) {
   const inputRef = useRef(null);
@@ -96,8 +97,9 @@ export default function UploadPage() {
             <FileInput name="photos" label="photos.csv" file={files.photos} onChange={setFile} hint="One row per job photo" />
             <FileInput name="payments" label="payments.csv" required file={files.payments} onChange={setFile} hint="One row per payment" />
             <FileInput name="teams" label="teams.csv" file={files.teams} onChange={setFile} hint="Only needed for teams not seen in training" />
-            {totalMb > MAX_TOTAL_MB && <div className="alert warn">Files total {totalMb.toFixed(1)} MB; the limit is {MAX_TOTAL_MB} MB.</div>}
-            <button className="primary" disabled={!files.invoices || !files.payments || busy || !status?.ready}>
+            <p className="small muted">Up to {MAX_TOTAL_MB} MB in total{totalMb > 0 && <> · selected {totalMb.toFixed(1)} MB</>}.</p>
+            {totalMb > MAX_TOTAL_MB && <div className="alert warn">Files total {totalMb.toFixed(1)} MB; the limit is {MAX_TOTAL_MB} MB in total. Remove a file or upload fewer months.</div>}
+            <button className="primary" disabled={!files.invoices || !files.payments || busy || !status?.ready || totalMb > MAX_TOTAL_MB}>
               {busy === 'step1' ? 'Scoring payments…' : 'Upload & score payments'}
             </button>
           </form>
@@ -110,7 +112,8 @@ export default function UploadPage() {
             <form onSubmit={step2}>
               <FileInput name="disputes" label="disputes.csv" required file={disputes} onChange={(_, f) => setDisputes(f)} hint="Disputes raised on the step 1 payments" />
               <p className="muted small">If outcome / closed_at columns are present they are ignored.</p>
-              <button className="primary" disabled={!disputes || busy}>
+              {disputes && disputes.size / 1024 / 1024 > MAX_TOTAL_MB && <div className="alert warn">disputes.csv is {(disputes.size / 1024 / 1024).toFixed(1)} MB; the limit is {MAX_TOTAL_MB} MB.</div>}
+              <button className="primary" disabled={!disputes || busy || disputes.size / 1024 / 1024 > MAX_TOTAL_MB}>
                 {busy === 'step2' ? 'Scoring disputes…' : session.disputesScored ? 'Replace & re-score disputes' : 'Upload & score disputes'}
               </button>
             </form>

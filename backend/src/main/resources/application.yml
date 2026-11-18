@@ -7,8 +7,9 @@ server:
 spring:
   servlet:
     multipart:
-      max-file-size: 100MB
-      max-request-size: 105MB
+      # 30 MB in total per upload (the request allows a little extra for multipart overhead).
+      max-file-size: 30MB
+      max-request-size: 31MB
   main:
     banner-mode: off
 
