@@ -3,3 +3,8 @@ frontend/node_modules
 data
 sample-data
 .git
+outputs
+analysis
+experiments
+tools
+*.log

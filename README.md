@@ -33,8 +33,11 @@ Frontend dev with hot reload: run the jar, then `cd frontend && npm run dev` (pr
 
 `models/` is not in git (the bundle holds record-level history from the data), so run step 3 before building the image.
 
-Deploy: `docker build -t dispute-shield . && docker run -p 8080:8080 dispute-shield`. Works on any
-container host (Render, Fly.io, Railway). Use an always-on instance so the link works for 7+ days.
+Deploy: hosted on Fly.io at https://dispute-shield.fly.dev, configured by [fly.toml](fly.toml)
+(one always-on machine in Singapore, 2 GB). To redeploy, run `fly deploy` from this folder: Fly uploads
+the local folder and builds the Dockerfile remotely, so `models/` reaches the image without going into git.
+
+Locally: `docker build -t dispute-shield . && docker run -p 8080:8080 dispute-shield`.
 
 ## Using the app
 
