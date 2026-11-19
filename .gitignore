@@ -18,3 +18,4 @@ outputs/
 
 # Trained bundle holds record-level history (card fingerprints, customer/team IDs): rebuild it with `train`
 models/
+transcript.md
